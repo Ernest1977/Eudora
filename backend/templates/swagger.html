@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eudora API — Documentation Swagger</title>
+  <link rel="icon" type="image/png" href="/images/favicon.png" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    body { margin: 0; background: #fafafa; }
+    .swagger-ui .topbar { display: none; }
+    .swagger-ui .info { margin: 30px 0; }
+    .swagger-ui .info .title { font-size: 2em; }
+    .custom-header {
+      background: #1a1a2e;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .custom-header img { height: 32px; filter: brightness(0) invert(1); }
+    .custom-header span { font-size: 14px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #B8963E; }
+    .custom-header a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 12px; margin-left: auto; }
+    .custom-header a:hover { color: white; }
+  </style>
+</head>
+<body>
+  <div class="custom-header">
+    <img src="/images/eud-or.png" alt="Logo" />
+    <span>API Documentation</span>
+    <a href="/">← Retour au site</a>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    SwaggerUIBundle({
+      url: '/api/docs/swagger.json',
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+      layout: "BaseLayout",
+      defaultModelsExpandDepth: 2,
+      defaultModelExpandDepth: 2,
+      docExpansion: "list",
+      filter: true,
+      tryItOutEnabled: true,
+    });
+  </script>
+</body>
+</html>

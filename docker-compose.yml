@@ -1,0 +1,97 @@
+# ============================================
+# Docker Compose — Eudora Conseil & Relooking
+# ============================================
+# Usage :
+#   docker compose up -d          (démarrer)
+#   docker compose down           (arrêter)
+#   docker compose logs -f        (voir les logs)
+#   docker compose up -d --build  (rebuild)
+# ============================================
+
+services:
+  # --- Base de données PostgreSQL ---
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Backend Flask + Gunicorn ---
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      DATABASE_URL: ${DATABASE_URL}
+      MAIL_SERVER: ${MAIL_SERVER}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_DEFAULT_SENDER: ${MAIL_DEFAULT_SENDER}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    volumes:
+      - backend_uploads:/app/uploads
+    expose:
+      - "5000"
+
+  # --- Frontend + Reverse Proxy Nginx ---
+  nginx:
+    image: nginx:alpine
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Fichiers statiques (build frontend)
+      - ./dist:/usr/share/nginx/html:ro
+      # Images publiques (logo, favicon, galerie)
+      - ./public/images:/usr/share/nginx/html/images:ro
+      - ./public/favicon.png:/usr/share/nginx/html/favicon.png:ro
+      # Config Nginx
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # SSL
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # --- Certbot (SSL Let's Encrypt) ---
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  postgres_data:
+    name: eudora_postgres_data
+  backend_uploads:
+    name: eudora_uploads
+  certbot_conf:
+    name: eudora_certbot_conf
+  certbot_www:
+    name: eudora_certbot_www

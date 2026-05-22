@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+::-webkit-scrollbar-thumb {
+  background: #B8963E;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9A7A2E;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background: #B8963E;
+  color: white;
+}
+
+/* Typography */
+body {
+  font-family: 'Lato', sans-serif;
+  background-color: #FAF7F2;
+  color: #4A3728;
+}
+
+/* Prevent layout shift on mobile when overflow hidden */
+body.menu-open {
+  overflow: hidden;
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Gold shimmer effect */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    #B8963E 0%,
+    #D4B483 40%,
+    #F0D9A0 50%,
+    #D4B483 60%,
+    #B8963E 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Section transitions */
+section {
+  transition: background-color 0.3s ease;
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(74, 55, 40, 0.12);
+}
+
+/* Input focus ring */
+input:focus, textarea:focus, select:focus {
+  box-shadow: 0 0 0 2px rgba(184, 150, 62, 0.2);
+}
+
+/* Swiper customization */
+.swiper-pagination-bullet-active {
+  background: #B8963E !important;
+}
+
+/* Print styles */
+@media print {
+  .no-print { display: none !important; }
+}

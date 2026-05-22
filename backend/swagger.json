@@ -1,0 +1,685 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Eudora Conseil & Relooking — API",
+    "description": "API REST complète pour le site Eudora Conseil & Relooking.\n\n## Authentification\nL'API utilise **JWT (JSON Web Token)**. Pour accéder aux endpoints protégés :\n1. Appelez `POST /api/auth/login` avec vos identifiants\n2. Récupérez le `access_token` dans la réponse\n3. Ajoutez le header `Authorization: Bearer <access_token>` à chaque requête\n\n## Sections\n- **Auth** — Connexion, inscription, gestion du token\n- **CMS** — Gestion du contenu du site (Hero, About, Services, Formules, Témoignages, Galerie)\n- **Contact** — Messages du formulaire de contact\n- **Clients** — Gestion des clients\n- **Invoices** — Facturation\n- **Finance** — Dashboard financier et statistiques\n- **Settings** — Paramètres globaux du site",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Eudora Conseil & Relooking",
+      "email": "info@ecrelooking.com",
+      "url": "https://www.ecrelooking.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://www.ecrelooking.com",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost:5000",
+      "description": "Développement local"
+    }
+  ],
+  "tags": [
+    { "name": "Auth", "description": "Authentification & gestion des tokens JWT" },
+    { "name": "Health", "description": "Vérification de l'état du serveur" },
+    { "name": "CMS — Hero", "description": "Section Hero (bannière principale)" },
+    { "name": "CMS — About", "description": "Section À Propos" },
+    { "name": "CMS — Services", "description": "Gestion des prestations" },
+    { "name": "CMS — Formulas", "description": "Gestion des formules / packages" },
+    { "name": "CMS — Testimonials", "description": "Gestion des témoignages clients" },
+    { "name": "CMS — Gallery", "description": "Gestion de la galerie photos" },
+    { "name": "CMS — Settings", "description": "Paramètres globaux du site" },
+    { "name": "CMS — Upload", "description": "Upload d'images" },
+    { "name": "Contact", "description": "Messages du formulaire de contact" },
+    { "name": "Clients", "description": "Gestion des clients (CRM)" },
+    { "name": "Invoices", "description": "Facturation" },
+    { "name": "Finance", "description": "Dashboard financier et statistiques" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT obtenu via POST /api/auth/login"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Identifiants incorrects" }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Opération réussie" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string", "example": "admin" },
+          "password": { "type": "string", "example": "motdepasse123" }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": { "type": "string" },
+          "refresh_token": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string", "format": "uuid" },
+          "username": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["admin", "staff"] },
+          "is_active": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "HeroSection": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "tagline_fr": { "type": "string", "example": "Conseil en Image & Relooking" },
+          "tagline_en": { "type": "string" },
+          "tagline_it": { "type": "string" },
+          "title_fr": { "type": "string", "example": "Révélez votre\\nStyle Signature" },
+          "title_en": { "type": "string" },
+          "title_it": { "type": "string" },
+          "subtitle_fr": { "type": "string" },
+          "subtitle_en": { "type": "string" },
+          "subtitle_it": { "type": "string" },
+          "cta_primary_fr": { "type": "string" },
+          "cta_primary_en": { "type": "string" },
+          "cta_primary_it": { "type": "string" },
+          "cta_secondary_fr": { "type": "string" },
+          "cta_secondary_en": { "type": "string" },
+          "cta_secondary_it": { "type": "string" },
+          "background_image": { "type": "string", "example": "/images/hero-bg.jpg" },
+          "stat1_value": { "type": "string", "example": "200+" },
+          "stat1_label_fr": { "type": "string", "example": "Clientes" },
+          "stat2_value": { "type": "string", "example": "10" },
+          "stat2_label_fr": { "type": "string" },
+          "stat3_value": { "type": "string", "example": "98%" },
+          "stat3_label_fr": { "type": "string" }
+        }
+      },
+      "Service": {
+        "type": "object",
+        "required": ["name_fr", "price"],
+        "properties": {
+          "id": { "type": "integer" },
+          "sort_order": { "type": "integer", "default": 0 },
+          "icon": { "type": "string", "example": "🎨" },
+          "name_fr": { "type": "string", "example": "Colorimétrie" },
+          "name_en": { "type": "string" },
+          "name_it": { "type": "string" },
+          "description_fr": { "type": "string" },
+          "description_en": { "type": "string" },
+          "description_it": { "type": "string" },
+          "details_fr": { "type": "string", "description": "JSON array de strings", "example": "[\"Analyse complète\", \"Palette personnalisée\"]" },
+          "details_en": { "type": "string" },
+          "details_it": { "type": "string" },
+          "duration": { "type": "string", "example": "1h30" },
+          "price": { "type": "number", "example": 120 },
+          "category": { "type": "string", "enum": ["standalone", "formula"], "default": "standalone" },
+          "is_active": { "type": "boolean", "default": true }
+        }
+      },
+      "Formula": {
+        "type": "object",
+        "required": ["name_fr"],
+        "properties": {
+          "id": { "type": "integer" },
+          "sort_order": { "type": "integer" },
+          "name_fr": { "type": "string", "example": "COMPLET" },
+          "name_en": { "type": "string" },
+          "name_it": { "type": "string" },
+          "duration_fr": { "type": "string", "example": "10h00 / 5 séances" },
+          "duration_en": { "type": "string" },
+          "duration_it": { "type": "string" },
+          "price": { "type": "number", "nullable": true, "example": 980, "description": "null = sur devis" },
+          "features_fr": { "type": "string", "description": "JSON array", "example": "[\"Bilan image\", \"Colorimétrie\"]" },
+          "features_en": { "type": "string" },
+          "features_it": { "type": "string" },
+          "is_popular": { "type": "boolean", "default": false },
+          "is_active": { "type": "boolean", "default": true }
+        }
+      },
+      "Testimonial": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "id": { "type": "integer" },
+          "sort_order": { "type": "integer" },
+          "name": { "type": "string", "example": "Sophie M." },
+          "role_fr": { "type": "string", "example": "Directrice Marketing" },
+          "role_en": { "type": "string" },
+          "role_it": { "type": "string" },
+          "text_fr": { "type": "string" },
+          "text_en": { "type": "string" },
+          "text_it": { "type": "string" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 5, "default": 5 },
+          "is_active": { "type": "boolean", "default": true }
+        }
+      },
+      "GalleryImage": {
+        "type": "object",
+        "required": ["src"],
+        "properties": {
+          "id": { "type": "integer" },
+          "sort_order": { "type": "integer" },
+          "src": { "type": "string", "example": "/images/gallery-1.jpg" },
+          "title_fr": { "type": "string" },
+          "title_en": { "type": "string" },
+          "title_it": { "type": "string" },
+          "category_fr": { "type": "string" },
+          "category_en": { "type": "string" },
+          "category_it": { "type": "string" },
+          "is_tall": { "type": "boolean", "default": false },
+          "is_active": { "type": "boolean", "default": true }
+        }
+      },
+      "ContactMessage": {
+        "type": "object",
+        "required": ["name", "email", "message"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string", "example": "Marie Dupont" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string", "example": "+39 327 225 0364" },
+          "service": { "type": "string", "example": "Colorimétrie" },
+          "message": { "type": "string" },
+          "is_read": { "type": "boolean", "default": false },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Client": {
+        "type": "object",
+        "required": ["first_name", "last_name", "email"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string", "format": "uuid" },
+          "first_name": { "type": "string" },
+          "last_name": { "type": "string" },
+          "full_name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string" },
+          "address": { "type": "string" },
+          "city": { "type": "string" },
+          "country": { "type": "string", "default": "France" },
+          "notes": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "inactive", "prospect"] },
+          "preferred_language": { "type": "string", "enum": ["fr", "en", "it"] },
+          "total_spent": { "type": "number" },
+          "invoices_count": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Invoice": {
+        "type": "object",
+        "required": ["client_id"],
+        "properties": {
+          "id": { "type": "integer" },
+          "invoice_number": { "type": "string", "example": "EUD-202605-0001" },
+          "client_id": { "type": "integer" },
+          "client_name": { "type": "string" },
+          "issue_date": { "type": "string", "format": "date" },
+          "due_date": { "type": "string", "format": "date" },
+          "status": { "type": "string", "enum": ["draft", "sent", "paid", "overdue", "cancelled"] },
+          "subtotal": { "type": "number" },
+          "tva_rate": { "type": "number", "default": 0.2 },
+          "tva_amount": { "type": "number" },
+          "total_amount": { "type": "number" },
+          "payment_method": { "type": "string" },
+          "payment_date": { "type": "string", "format": "date" },
+          "notes": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InvoiceItem" }
+          }
+        }
+      },
+      "InvoiceItem": {
+        "type": "object",
+        "required": ["description", "unit_price"],
+        "properties": {
+          "id": { "type": "integer" },
+          "description": { "type": "string" },
+          "quantity": { "type": "number", "default": 1 },
+          "unit_price": { "type": "number" },
+          "total": { "type": "number" }
+        }
+      },
+      "FinanceDashboard": {
+        "type": "object",
+        "properties": {
+          "total_revenue": { "type": "number" },
+          "monthly_revenue": { "type": "number" },
+          "pending_amount": { "type": "number" },
+          "total_clients": { "type": "integer" },
+          "total_invoices": { "type": "integer" },
+          "paid_invoices": { "type": "integer" },
+          "overdue_invoices": { "type": "integer" }
+        }
+      }
+    },
+    "parameters": {
+      "langParam": {
+        "name": "lang",
+        "in": "query",
+        "description": "Langue de réponse",
+        "schema": { "type": "string", "enum": ["fr", "en", "it"], "default": "fr" }
+      },
+      "pageParam": {
+        "name": "page",
+        "in": "query",
+        "description": "Numéro de page",
+        "schema": { "type": "integer", "default": 1 }
+      },
+      "perPageParam": {
+        "name": "per_page",
+        "in": "query",
+        "description": "Éléments par page",
+        "schema": { "type": "integer", "default": 20 }
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Vérifier l'état du serveur",
+        "responses": {
+          "200": {
+            "description": "Serveur opérationnel",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "status": { "type": "string", "example": "ok" }, "app": { "type": "string", "example": "Eudora Conseil & Relooking" } } } } }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Connexion",
+        "description": "Authentifie un utilisateur admin et retourne les tokens JWT.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } } } },
+        "responses": {
+          "200": { "description": "Connexion réussie", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } } } },
+          "400": { "description": "Champs manquants", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Identifiants incorrects", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Créer un utilisateur",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["username", "email", "password"], "properties": { "username": { "type": "string" }, "email": { "type": "string", "format": "email" }, "password": { "type": "string" }, "role": { "type": "string", "enum": ["admin", "staff"], "default": "staff" } } } } } },
+        "responses": { "201": { "description": "Utilisateur créé" }, "409": { "description": "Utilisateur ou email déjà existant" } }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Rafraîchir le token",
+        "security": [{ "bearerAuth": [] }],
+        "description": "Utilise le refresh_token pour obtenir un nouveau access_token.",
+        "responses": { "200": { "description": "Nouveau token", "content": { "application/json": { "schema": { "type": "object", "properties": { "access_token": { "type": "string" } } } } } } }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Profil utilisateur connecté",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Profil", "content": { "application/json": { "schema": { "type": "object", "properties": { "user": { "$ref": "#/components/schemas/User" } } } } } } }
+      }
+    },
+    "/api/cms/hero": {
+      "get": {
+        "tags": ["CMS — Hero"],
+        "summary": "Récupérer la section Hero (public)",
+        "parameters": [{ "$ref": "#/components/parameters/langParam" }],
+        "responses": { "200": { "description": "Contenu Hero localisé" } }
+      },
+      "put": {
+        "tags": ["CMS — Hero"],
+        "summary": "Mettre à jour la section Hero",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HeroSection" } } } },
+        "responses": { "200": { "description": "Hero mise à jour" } }
+      }
+    },
+    "/api/cms/about": {
+      "get": {
+        "tags": ["CMS — About"],
+        "summary": "Récupérer la section About (public)",
+        "parameters": [{ "$ref": "#/components/parameters/langParam" }],
+        "responses": { "200": { "description": "Contenu About localisé" } }
+      },
+      "put": {
+        "tags": ["CMS — About"],
+        "summary": "Mettre à jour la section About",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "description": "Tous les champs de la section About (voir modèle)" } } } },
+        "responses": { "200": { "description": "About mise à jour" } }
+      }
+    },
+    "/api/cms/services": {
+      "get": {
+        "tags": ["CMS — Services"],
+        "summary": "Lister les services",
+        "parameters": [{ "$ref": "#/components/parameters/langParam" }, { "name": "all", "in": "query", "description": "Inclure les services désactivés", "schema": { "type": "boolean", "default": false } }],
+        "responses": { "200": { "description": "Liste des services", "content": { "application/json": { "schema": { "type": "object", "properties": { "services": { "type": "array", "items": { "$ref": "#/components/schemas/Service" } } } } } } } }
+      },
+      "post": {
+        "tags": ["CMS — Services"],
+        "summary": "Créer un service",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Service" } } } },
+        "responses": { "201": { "description": "Service créé" } }
+      }
+    },
+    "/api/cms/services/{id}": {
+      "put": {
+        "tags": ["CMS — Services"],
+        "summary": "Modifier un service",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Service" } } } },
+        "responses": { "200": { "description": "Service modifié" }, "404": { "description": "Service introuvable" } }
+      },
+      "delete": {
+        "tags": ["CMS — Services"],
+        "summary": "Supprimer un service",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Service supprimé" }, "404": { "description": "Service introuvable" } }
+      }
+    },
+    "/api/cms/formulas": {
+      "get": {
+        "tags": ["CMS — Formulas"],
+        "summary": "Lister les formules",
+        "parameters": [{ "$ref": "#/components/parameters/langParam" }, { "name": "all", "in": "query", "schema": { "type": "boolean", "default": false } }],
+        "responses": { "200": { "description": "Liste des formules" } }
+      },
+      "post": {
+        "tags": ["CMS — Formulas"],
+        "summary": "Créer une formule",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Formula" } } } },
+        "responses": { "201": { "description": "Formule créée" } }
+      }
+    },
+    "/api/cms/formulas/{id}": {
+      "put": {
+        "tags": ["CMS — Formulas"],
+        "summary": "Modifier une formule",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Formula" } } } },
+        "responses": { "200": { "description": "Formule modifiée" } }
+      },
+      "delete": {
+        "tags": ["CMS — Formulas"],
+        "summary": "Supprimer une formule",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Formule supprimée" } }
+      }
+    },
+    "/api/cms/testimonials": {
+      "get": {
+        "tags": ["CMS — Testimonials"],
+        "summary": "Lister les témoignages",
+        "parameters": [{ "$ref": "#/components/parameters/langParam" }, { "name": "all", "in": "query", "schema": { "type": "boolean", "default": false } }],
+        "responses": { "200": { "description": "Liste des témoignages" } }
+      },
+      "post": {
+        "tags": ["CMS — Testimonials"],
+        "summary": "Créer un témoignage",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Testimonial" } } } },
+        "responses": { "201": { "description": "Témoignage créé" } }
+      }
+    },
+    "/api/cms/testimonials/{id}": {
+      "put": {
+        "tags": ["CMS — Testimonials"],
+        "summary": "Modifier un témoignage",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Testimonial" } } } },
+        "responses": { "200": { "description": "Témoignage modifié" } }
+      },
+      "delete": {
+        "tags": ["CMS — Testimonials"],
+        "summary": "Supprimer un témoignage",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Témoignage supprimé" } }
+      }
+    },
+    "/api/cms/gallery": {
+      "get": {
+        "tags": ["CMS — Gallery"],
+        "summary": "Lister les images de la galerie",
+        "parameters": [{ "$ref": "#/components/parameters/langParam" }, { "name": "all", "in": "query", "schema": { "type": "boolean", "default": false } }],
+        "responses": { "200": { "description": "Liste des images" } }
+      },
+      "post": {
+        "tags": ["CMS — Gallery"],
+        "summary": "Ajouter une image",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GalleryImage" } } } },
+        "responses": { "201": { "description": "Image ajoutée" } }
+      }
+    },
+    "/api/cms/gallery/{id}": {
+      "put": {
+        "tags": ["CMS — Gallery"],
+        "summary": "Modifier une image",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GalleryImage" } } } },
+        "responses": { "200": { "description": "Image modifiée" } }
+      },
+      "delete": {
+        "tags": ["CMS — Gallery"],
+        "summary": "Supprimer une image",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Image supprimée" } }
+      }
+    },
+    "/api/cms/settings": {
+      "get": {
+        "tags": ["CMS — Settings"],
+        "summary": "Récupérer les paramètres du site",
+        "responses": { "200": { "description": "Paramètres clé/valeur", "content": { "application/json": { "schema": { "type": "object", "additionalProperties": { "type": "string" }, "example": { "email": "info@ecrelooking.com", "phone": "+39 327 225 0364", "facebook_url": "https://facebook.com/..." } } } } } }
+      },
+      "put": {
+        "tags": ["CMS — Settings"],
+        "summary": "Mettre à jour les paramètres",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "additionalProperties": { "type": "string" }, "example": { "email": "info@ecrelooking.com", "phone": "+39 327 225 0364" } } } } },
+        "responses": { "200": { "description": "Paramètres mis à jour" } }
+      }
+    },
+    "/api/cms/upload": {
+      "post": {
+        "tags": ["CMS — Upload"],
+        "summary": "Uploader une image",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": { "type": "string", "format": "binary", "description": "Image (png, jpg, jpeg, gif, webp, svg)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Image uploadée", "content": { "application/json": { "schema": { "type": "object", "properties": { "url": { "type": "string", "example": "/uploads/photo_1716400000.jpg" }, "filename": { "type": "string" } } } } } },
+          "400": { "description": "Fichier invalide" }
+        }
+      }
+    },
+    "/api/contact/": {
+      "post": {
+        "tags": ["Contact"],
+        "summary": "Envoyer un message (public)",
+        "description": "Endpoint utilisé par le formulaire de contact du site. Sauvegarde en base + notification email à l'admin.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["name", "email", "message"], "properties": { "name": { "type": "string" }, "email": { "type": "string", "format": "email" }, "phone": { "type": "string" }, "service": { "type": "string" }, "message": { "type": "string" } } } } } },
+        "responses": { "201": { "description": "Message envoyé" }, "400": { "description": "Champs manquants ou email invalide" } }
+      },
+      "get": {
+        "tags": ["Contact"],
+        "summary": "Lister les messages (admin)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/pageParam" }, { "$ref": "#/components/parameters/perPageParam" }, { "name": "unread", "in": "query", "schema": { "type": "boolean" } }],
+        "responses": { "200": { "description": "Liste paginée des messages", "content": { "application/json": { "schema": { "type": "object", "properties": { "messages": { "type": "array", "items": { "$ref": "#/components/schemas/ContactMessage" } }, "total": { "type": "integer" }, "page": { "type": "integer" }, "pages": { "type": "integer" }, "unread_count": { "type": "integer" } } } } } } }
+      }
+    },
+    "/api/contact/{id}": {
+      "get": {
+        "tags": ["Contact"],
+        "summary": "Voir un message (le marque comme lu)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Détail du message" }, "404": { "description": "Message introuvable" } }
+      },
+      "delete": {
+        "tags": ["Contact"],
+        "summary": "Supprimer un message",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Message supprimé" } }
+      }
+    },
+    "/api/clients/": {
+      "get": {
+        "tags": ["Clients"],
+        "summary": "Lister les clients",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/pageParam" }, { "$ref": "#/components/parameters/perPageParam" }, { "name": "search", "in": "query", "schema": { "type": "string" } }, { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["active", "inactive", "prospect"] } }],
+        "responses": { "200": { "description": "Liste paginée des clients" } }
+      },
+      "post": {
+        "tags": ["Clients"],
+        "summary": "Créer un client",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Client" } } } },
+        "responses": { "201": { "description": "Client créé" }, "409": { "description": "Email déjà existant" } }
+      }
+    },
+    "/api/clients/{id}": {
+      "get": {
+        "tags": ["Clients"],
+        "summary": "Voir un client",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Détail du client" } }
+      },
+      "put": {
+        "tags": ["Clients"],
+        "summary": "Modifier un client",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Client" } } } },
+        "responses": { "200": { "description": "Client modifié" } }
+      },
+      "delete": {
+        "tags": ["Clients"],
+        "summary": "Supprimer un client",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Client supprimé" } }
+      }
+    },
+    "/api/invoices/": {
+      "get": {
+        "tags": ["Invoices"],
+        "summary": "Lister les factures",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/pageParam" }, { "$ref": "#/components/parameters/perPageParam" }, { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["draft", "sent", "paid", "overdue", "cancelled"] } }, { "name": "client_id", "in": "query", "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Liste paginée des factures" } }
+      },
+      "post": {
+        "tags": ["Invoices"],
+        "summary": "Créer une facture",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["client_id"], "properties": { "client_id": { "type": "integer" }, "notes": { "type": "string" }, "tva_rate": { "type": "number", "default": 0.2 }, "items": { "type": "array", "items": { "type": "object", "required": ["description", "unit_price"], "properties": { "description": { "type": "string" }, "quantity": { "type": "number", "default": 1 }, "unit_price": { "type": "number" } } } } } } } } },
+        "responses": { "201": { "description": "Facture créée avec numéro auto-généré (EUD-YYYYMM-XXXX)" } }
+      }
+    },
+    "/api/invoices/{id}": {
+      "get": {
+        "tags": ["Invoices"],
+        "summary": "Voir une facture",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Détail de la facture avec lignes" } }
+      },
+      "put": {
+        "tags": ["Invoices"],
+        "summary": "Modifier une facture (statut, paiement)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "status": { "type": "string", "enum": ["draft", "sent", "paid", "overdue", "cancelled"] }, "payment_method": { "type": "string" }, "notes": { "type": "string" } } } } } },
+        "responses": { "200": { "description": "Facture modifiée" } }
+      },
+      "delete": {
+        "tags": ["Invoices"],
+        "summary": "Supprimer une facture (brouillon uniquement)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Facture supprimée" }, "400": { "description": "Seuls les brouillons peuvent être supprimés" } }
+      }
+    },
+    "/api/finance/dashboard": {
+      "get": {
+        "tags": ["Finance"],
+        "summary": "Dashboard financier",
+        "description": "Chiffres clés : revenus totaux, mensuels, en attente, nombre de clients et factures.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Statistiques financières", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FinanceDashboard" } } } } }
+      }
+    },
+    "/api/finance/monthly": {
+      "get": {
+        "tags": ["Finance"],
+        "summary": "Revenus mensuels (12 derniers mois)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Revenus par mois", "content": { "application/json": { "schema": { "type": "object", "properties": { "months": { "type": "array", "items": { "type": "object", "properties": { "month": { "type": "string", "example": "2026-05" }, "revenue": { "type": "number" } } } } } } } } } }
+      }
+    },
+    "/api/finance/top-clients": {
+      "get": {
+        "tags": ["Finance"],
+        "summary": "Top clients par chiffre d'affaires",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }],
+        "responses": { "200": { "description": "Liste des meilleurs clients" } }
+      }
+    }
+  }
+}

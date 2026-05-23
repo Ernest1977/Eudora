@@ -1,67 +1,13 @@
 """
-Routes Content — Gestion du contenu dynamique des pages (protégé par JWT)
+Routes Content — Routes legacy, redirigent vers le CMS.
+Conservé pour la rétrocompatibilité.
 """
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app import db
-from app.models import PageContent, Service
+from app.models import Service
 
 content_bp = Blueprint('content', __name__)
-
-
-# ==========================================
-# CONTENU DES PAGES (public + admin)
-# ==========================================
-
-@content_bp.route('/pages/<page>', methods=['GET'])
-def get_page_content(page):
-    """Récupérer le contenu d'une page (public)."""
-    lang = request.args.get('lang', 'fr')
-    contents = PageContent.query.filter_by(page=page).all()
-    return jsonify({
-        'page': page,
-        'content': [c.to_dict(lang=lang) for c in contents],
-    }), 200
-
-
-@content_bp.route('/pages', methods=['POST'])
-@jwt_required()
-def update_page_content():
-    """Créer ou mettre à jour un contenu de page (admin)."""
-    data = request.get_json()
-
-    required = ['page', 'section', 'key']
-    for field in required:
-        if not data.get(field):
-            return jsonify({'error': f'Champ "{field}" requis'}), 400
-
-    # Chercher si le contenu existe déjà
-    content = PageContent.query.filter_by(
-        page=data['page'],
-        section=data['section'],
-        key=data['key'],
-    ).first()
-
-    if content:
-        content.value_fr = data.get('value_fr', content.value_fr)
-        content.value_en = data.get('value_en', content.value_en)
-        content.value_it = data.get('value_it', content.value_it)
-        content.content_type = data.get('content_type', content.content_type)
-    else:
-        content = PageContent(
-            page=data['page'],
-            section=data['section'],
-            key=data['key'],
-            value_fr=data.get('value_fr', ''),
-            value_en=data.get('value_en', ''),
-            value_it=data.get('value_it', ''),
-            content_type=data.get('content_type', 'text'),
-        )
-        db.session.add(content)
-
-    db.session.commit()
-
-    return jsonify({'message': 'Contenu sauvegardé', 'content': content.to_dict()}), 200
 
 
 # ==========================================
@@ -72,7 +18,7 @@ def update_page_content():
 def list_services():
     """Lister les services actifs (public)."""
     lang = request.args.get('lang', 'fr')
-    services = Service.query.filter_by(is_active=True).order_by(Service.id).all()
+    services = Service.query.filter_by(is_active=True).order_by(Service.sort_order).all()
     return jsonify({
         'services': [s.to_dict(lang=lang) for s in services],
     }), 200

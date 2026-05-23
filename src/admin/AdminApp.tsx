@@ -9,6 +9,8 @@ import ServicesPage from './pages/ServicesPage';
 import FormulasPage from './pages/FormulasPage';
 import TestimonialsPage from './pages/TestimonialsPage';
 import GalleryPage from './pages/GalleryPage';
+import ClientsPage from './pages/ClientsPage';
+import InvoicesPage from './pages/InvoicesPage';
 import MessagesPage from './pages/MessagesPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -25,6 +27,8 @@ export default function AdminApp() {
           <Route path="formulas" element={<FormulasPage />} />
           <Route path="testimonials" element={<TestimonialsPage />} />
           <Route path="gallery" element={<GalleryPage />} />
+          <Route path="clients" element={<ClientsPage />} />
+          <Route path="invoices" element={<InvoicesPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>

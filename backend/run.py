@@ -16,6 +16,10 @@ from app.models import User
 
 app = create_app()
 
+# Enregistrer la commande seed-all
+from seed_all import register_seed_command
+register_seed_command(app)
+
 
 @app.cli.command('create-admin')
 def create_admin():
